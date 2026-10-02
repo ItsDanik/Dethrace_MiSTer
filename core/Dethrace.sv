@@ -61,8 +61,15 @@ localparam CONF_STR = {
 	"O[14:11],Music Volume,100%,90%,80%,70%,60%,50%,40%,30%,20%,10%,0%;",
 	"O[15],Renderer,Optimized,Original;",
 	"-;",
-	"J1,Accelerate,Brake,Handbrake,Change View,Repair,Recover,Map,Pause;",
-	"jn,A,B,X,Y,R,L,Select,Start;",
+	"O[19:16],Menu OK,MiSTer,A,B,X,Y,L,R,Select,Start;",
+	"O[23:20],Menu Back,MiSTer,A,B,X,Y,L,R,Select,Start;",
+	"-;",
+	// MiSTer's default map only knows the SNES-style pad (no triggers). Main refuses
+	// to map a button twice, so Menu OK/Back here are for spare buttons without a
+	// race function and unmapped by default; the OSD Menu OK/Back options cover
+	// buttons that have one (mister_joymap.c, which mirrors this "jn" list).
+	"J1,Accelerate,Brake,Handbrake,Change View,Repair,Recover,Map,Pause,Menu OK,Menu Back;",
+	"jn,B,Y,A,X,L,Select,R,Start;",
 	"V,v",`BUILD_DATE
 };
 

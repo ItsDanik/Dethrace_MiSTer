@@ -8,7 +8,7 @@ The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the op
 
 ## Requirements
 
-- A MiSTer with **MiSTer Frontier** installed. Its `Master_Daemon` starts the game (`games/Dethrace/_handler.sh`) when the core is loaded and stops it when you switch cores.
+- A MiSTer with **[MiSTer Frontier](https://github.com/MiSTerOrganize/MiSTer_Frontier)** installed. Its `Master_Daemon` starts the game (`games/Dethrace/_handler.sh`) when the core is loaded and stops it when you switch cores.
 - **Carmageddon game data**, which is not included. Use your original CD or the GOG release (Carmageddon Max Pack).
 
 ## Installation
@@ -30,13 +30,28 @@ Quitting from the game's main menu returns to the MiSTer menu. The game's log is
 | Sound Volume | master volume of sound effects and cutscene audio, on top of the game's own setting |
 | Music Volume | master volume of the CD music, on top of the game's own setting |
 | Renderer | **Optimized**: rewritten rasteriser and fog loops, same picture, about 1.6x faster. **Original**: the original rasteriser code |
+| Menu OK, Menu Back | the gamepad button that acts as Enter / Esc in the game's menus, even if it is also a race control. **MiSTer** (default) uses the OK/Back buttons of your MiSTer menu |
 
 ## Controls
 
 - **Keyboard:** the original PC controls.
-- **Gamepad** (map the buttons in the OSD):
-  - Menus: D-pad = cursor keys, Accelerate/Pause = Enter, Brake/Map = Esc
-  - Race: D-pad/stick = steer, Up/Accelerate = accelerate, Down/Brake = brake, Handbrake, Change View, Repair, Recover, Map, Pause (Esc)
+- **Gamepad** in a race (default mapping):
+
+| Button | Action |
+|---|---|
+| D-pad / left stick | Steer |
+| B (Xbox A / PlayStation Cross) | Accelerate |
+| Y (Xbox X / PlayStation Square) | Brake |
+| A (Xbox B / PlayStation Circle) | Handbrake |
+| X (Xbox Y / PlayStation Triangle) | Change View |
+| L (LB / L1) | Repair |
+| R (RB / R1) | Map |
+| Select | Recover |
+| Start | Pause (Esc) |
+
+To accelerate and brake with the triggers (RT/LT), assign them in the OSD under *Define Dethrace buttons*. MiSTer's default mapping can't use triggers.
+
+*Menu OK* and *Menu Back* in *Define Dethrace buttons* are only needed for a button that has no race function. MiSTer doesn't let you assign a button twice there, so to use a race control as Enter/Esc in menus, pick that button in the OSD's Menu OK/Menu Back options instead.
 
 ## Building
 
