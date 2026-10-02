@@ -1,0 +1,4 @@
+[submodule "dethrace"]
+	path = dethrace
+	url = https://github.com/ItsDanik/dethrace.git
+	branch = mister

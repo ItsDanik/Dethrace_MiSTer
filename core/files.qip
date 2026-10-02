@@ -1,0 +1,3 @@
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/dethrace_host.sv
+set_global_assignment -name SDC_FILE Dethrace.sdc
+set_global_assignment -name SYSTEMVERILOG_FILE Dethrace.sv
