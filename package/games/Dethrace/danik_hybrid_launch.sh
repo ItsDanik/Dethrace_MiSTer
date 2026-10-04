@@ -3,6 +3,10 @@
 # Dethrace (Carmageddon) launcher. danik_hybrid_cores (Scripts/danik_hybrid_cores.sh) runs
 # it when the Dethrace core is loaded and stops it, with SIGTERM to the process
 # group, when another core is loaded.
+#
+# Laid out after the per-core handlers of MiSTer Frontier by MiSTer Organize
+# (https://github.com/MiSTerOrganize/MiSTer_Frontier, GPL-3.0), with thanks
+# for the inspiration. Licensed under the GPL-3.0.
 
 GAMEDIR="/media/fat/games/Dethrace"
 LOGDIR="/media/fat/logs/Dethrace"

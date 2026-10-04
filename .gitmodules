@@ -2,3 +2,7 @@
 	path = dethrace
 	url = https://github.com/ItsDanik/dethrace.git
 	branch = mister
+[submodule "hybrid"]
+	path = hybrid
+	url = https://github.com/ItsDanik/Hybrid_MiSTer.git
+	branch = main

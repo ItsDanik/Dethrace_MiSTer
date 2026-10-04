@@ -8,7 +8,7 @@ The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the op
 
 ## Requirements
 
-- **danik_hybrid_cores**, the launcher that comes in the release zip (`Scripts/danik_hybrid_cores.sh`): run it **once** from the MiSTer's `Scripts` menu. It starts the game whenever the core is loaded, keeps running after a reboot, and serves all our hybrid cores. Without it the core only shows colour bars.
+- **danik_hybrid_cores**, the launcher that comes in the release zip (`Scripts/danik_hybrid_cores.sh`): run it **once** from the MiSTer's `Scripts` menu. It starts the game whenever the core is loaded, keeps running after a reboot, and serves all our hybrid cores. Every hybrid core brings the launcher along and the newest version is the one that runs, so it never has to be run again after an update. Without it the core only shows colour bars.
 - **Carmageddon game data**, which is not included. Use your original CD or the GOG release (Carmageddon Max Pack).
 
 ## Installation
@@ -16,7 +16,7 @@ The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the op
 1. Download the newest `Dethrace_YYYYMMDD.zip` from [releases](releases/) and extract it to the root of your SD card (`/media/fat`). That gives you:
    - `_Other/Dethrace_YYYYMMDD.rbf`, the FPGA core
    - `games/Dethrace/`, the game binary and its launcher
-   - `Scripts/danik_hybrid_cores.sh`, the launcher
+   - `Scripts/danik_hybrid_cores.sh`, the launcher (from [Hybrid_MiSTer](https://github.com/ItsDanik/Hybrid_MiSTer), which can also keep it up to date through `update_all`)
 2. Copy the game's `DATA` folder to `/media/fat/games/Dethrace/DATA` (`DATA/GENERAL.TXT` must exist).
 3. Optional CD music (GOG release): copy the `MUSIC` folder (`Track02.ogg` ...) to `/media/fat/games/Dethrace/MUSIC`.
 4. Run **danik_hybrid_cores** from the `Scripts` menu, if you have not done so before (see Requirements).
@@ -77,7 +77,8 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 | `core/` | FPGA core, based on [Template_MiSTer](https://github.com/MiSTer-devel/Template_MiSTer). `rtl/dethrace_host.sv` documents the shared memory layout. `sim/run.sh` runs its testbench. |
 | `dethrace/` | submodule: [ItsDanik/dethrace](https://github.com/ItsDanik/dethrace) branch `mister`, a fork of dethrace with the MiSTer platform driver in `src/harness/platforms/mister*.c` |
 | `dethrace/lib/BRender-v1.3.2` | submodule: [ItsDanik/BRender-v1.3.2](https://github.com/ItsDanik/BRender-v1.3.2) branch `mister`, with the optimised rasteriser |
-| `package/` | files shipped in the release: the game's launcher (`danik_hybrid_launch.sh`) and README, and `Scripts/danik_hybrid_cores.sh`, the daemon that runs `games/<core>/danik_hybrid_launch.sh` while its core is loaded (its header documents it; the same file ships with all our hybrid cores) |
+| `hybrid/` | submodule: [ItsDanik/Hybrid_MiSTer](https://github.com/ItsDanik/Hybrid_MiSTer), what all our hybrid cores share. Dethrace uses its launcher: `launcher/danik_hybrid_cores.sh`, the daemon that runs `games/<core>/danik_hybrid_launch.sh` while its core is loaded (its header documents it) |
+| `package/` | files shipped in the release next to the binary: the game's launcher (`danik_hybrid_launch.sh`) and README |
 | `releases/` | release packages |
 | `toolchain/`, `tools/`, `bench/` | Docker toolchains, development helpers, benchmark scripts |
 
@@ -95,6 +96,7 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 - **[dethrace](https://github.com/dethrace-labs/dethrace)** by Jeff Harris and the dethrace-labs contributors: the reimplementation of Carmageddon this port is built on.
 - **[BRender](https://github.com/dethrace-labs/BRender-v1.3.2)** by Argonaut Software, released under the MIT license.
 - **[MiSTer](https://github.com/MiSTer-devel)** by Sorgelig and the MiSTer-devel contributors: the framework and Template_MiSTer.
+- **[MiSTer Frontier](https://github.com/MiSTerOrganize/MiSTer_Frontier)** by MiSTer Organize: thank you for the inspiration. Hybrid cores on the MiSTer, and the way their game is launched (a daemon that watches the loaded core and runs a script from its games folder), come from MiSTer Frontier. Our launcher is a separate implementation and does not need MiSTer Frontier installed.
 
 This project and its maintainers are in no way associated with or endorsed by SCi, Stainless Software or THQ Nordic. It does not include any Carmageddon game data, and it may only be used with assets from a copy of Carmageddon that you own.
 

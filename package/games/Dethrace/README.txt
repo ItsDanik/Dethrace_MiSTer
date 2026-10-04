@@ -10,7 +10,9 @@ Requirements
     (Scripts/danik_hybrid_cores.sh): copy it to /media/fat/Scripts/ and run
     it ONCE from the MiSTer's Scripts menu. It starts the game whenever
     the core is loaded, keeps running after a reboot, and serves all our
-    hybrid cores. Without it the core only shows colour bars.
+    hybrid cores. Every hybrid core brings the launcher along and the
+    newest version is the one that runs, so it never has to be run again
+    after an update. Without it the core only shows colour bars.
   - Carmageddon game data. It is not included: use your original CD or the
     GOG release (Carmageddon Max Pack).
 
@@ -67,3 +69,20 @@ Controls
 
 Quitting from the game's main menu returns to the MiSTer menu.
 Logs: /media/fat/logs/Dethrace/dethrace.log
+
+Credits
+  dethrace by Jeff Harris and the dethrace-labs contributors.
+  BRender by Argonaut Software.
+  MiSTer by Sorgelig and the MiSTer-devel contributors.
+  MiSTer Frontier by MiSTer Organize
+  (https://github.com/MiSTerOrganize/MiSTer_Frontier): thank you for the
+  inspiration. Hybrid cores on the MiSTer, and the way their game is
+  launched, come from MiSTer Frontier. Our launcher is a separate
+  implementation and does not need MiSTer Frontier installed.
+
+License
+  dethrace: LICENSE-dethrace.txt
+  The launcher scripts: GPL-3.0 (LICENSE-gpl3.txt)
+  The FPGA core: GPL-2.0
+  Source: https://github.com/ItsDanik/Dethrace_MiSTer
+          https://github.com/ItsDanik/Hybrid_MiSTer (launcher)
