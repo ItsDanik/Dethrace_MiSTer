@@ -6,8 +6,11 @@ ARM CPU; the Dethrace FPGA core provides native 15kHz video (CRT, VGA and
 HDMI), audio and input.
 
 Requirements
-  - MiSTer Frontier (https://github.com/MiSTerOrganize/MiSTer_Frontier),
-    whose Master_Daemon starts the game when the core is loaded.
+  - danik_hybrid_cores, the launcher that comes with this release
+    (Scripts/danik_hybrid_cores.sh): copy it to /media/fat/Scripts/ and run
+    it ONCE from the MiSTer's Scripts menu. It starts the game whenever
+    the core is loaded, keeps running after a reboot, and serves all our
+    hybrid cores. Without it the core only shows colour bars.
   - Carmageddon game data. It is not included: use your original CD or the
     GOG release (Carmageddon Max Pack).
 
@@ -18,6 +21,9 @@ Install
      (DATA/GENERAL.TXT must exist).
   4. Optional CD music (GOG): copy the MUSIC folder (Track02.ogg ...) to
      /media/fat/games/Dethrace/MUSIC
+  5. Run danik_hybrid_cores from the Scripts menu, if you have not done so
+     before (see Requirements).
+  6. Load Dethrace from the Other menu.
 
 OSD options
   Stereo Mix, Scandoubler Fx, Aspect ratio as usual. The game runs in its

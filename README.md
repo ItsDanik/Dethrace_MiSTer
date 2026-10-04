@@ -8,7 +8,7 @@ The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the op
 
 ## Requirements
 
-- A MiSTer with **[MiSTer Frontier](https://github.com/MiSTerOrganize/MiSTer_Frontier)** installed. Its `Master_Daemon` starts the game (`games/Dethrace/_handler.sh`) when the core is loaded and stops it when you switch cores.
+- **danik_hybrid_cores**, the launcher that comes in the release zip (`Scripts/danik_hybrid_cores.sh`): run it **once** from the MiSTer's `Scripts` menu. It starts the game whenever the core is loaded, keeps running after a reboot, and serves all our hybrid cores. Without it the core only shows colour bars.
 - **Carmageddon game data**, which is not included. Use your original CD or the GOG release (Carmageddon Max Pack).
 
 ## Installation
@@ -16,9 +16,11 @@ The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the op
 1. Download the newest `Dethrace_YYYYMMDD.zip` from [releases](releases/) and extract it to the root of your SD card (`/media/fat`). That gives you:
    - `_Other/Dethrace_YYYYMMDD.rbf`, the FPGA core
    - `games/Dethrace/`, the game binary and its launcher
+   - `Scripts/danik_hybrid_cores.sh`, the launcher
 2. Copy the game's `DATA` folder to `/media/fat/games/Dethrace/DATA` (`DATA/GENERAL.TXT` must exist).
 3. Optional CD music (GOG release): copy the `MUSIC` folder (`Track02.ogg` ...) to `/media/fat/games/Dethrace/MUSIC`.
-4. Load **Dethrace** from the `Other` menu.
+4. Run **danik_hybrid_cores** from the `Scripts` menu, if you have not done so before (see Requirements).
+5. Load **Dethrace** from the `Other` menu.
 
 Quitting from the game's main menu returns to the MiSTer menu. The game's log is in `/media/fat/logs/Dethrace/dethrace.log`.
 
@@ -75,7 +77,7 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 | `core/` | FPGA core, based on [Template_MiSTer](https://github.com/MiSTer-devel/Template_MiSTer). `rtl/dethrace_host.sv` documents the shared memory layout. `sim/run.sh` runs its testbench. |
 | `dethrace/` | submodule: [ItsDanik/dethrace](https://github.com/ItsDanik/dethrace) branch `mister`, a fork of dethrace with the MiSTer platform driver in `src/harness/platforms/mister*.c` |
 | `dethrace/lib/BRender-v1.3.2` | submodule: [ItsDanik/BRender-v1.3.2](https://github.com/ItsDanik/BRender-v1.3.2) branch `mister`, with the optimised rasteriser |
-| `package/` | files shipped in the release next to the binary (launcher, README) |
+| `package/` | files shipped in the release: the game's launcher (`danik_hybrid_launch.sh`) and README, and `Scripts/danik_hybrid_cores.sh`, the daemon that runs `games/<core>/danik_hybrid_launch.sh` while its core is loaded (its header documents it; the same file ships with all our hybrid cores) |
 | `releases/` | release packages |
 | `toolchain/`, `tools/`, `bench/` | Docker toolchains, development helpers, benchmark scripts |
 
@@ -86,7 +88,7 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 - `tools/bench.sh build/mister/dethrace <label> [script] [VAR=value ...]` plays `bench/bench.txt` headless on the MiSTer and fetches the frame times, profile and screenshots to `bench/out/<label>`. It runs with a fixed time step (`DETHRACE_MISTER_FIXED_STEP`) and full detail, so every run renders the same frames and results are comparable to about 1%. `PENTPRIM_FAST=1` and `PENTPRIM_REFERENCE=1` select the Fast and Original renderer. `tools/profsym.py` and `tools/proflines.py` break the profile down by function and by source line.
 - `tools/pgo.sh` makes a profile guided build (5-8% faster): it trains on the MiSTer with the benchmark, then rebuilds `build/mister/dethrace`. The release binary is built this way.
 - Benchmark on the MiSTer (ms per frame, 20261004): Original 28.0, Optimized 22.7, Fast 18.5. Sound is off in the benchmark because it makes runs differ; it costs the game thread next to nothing (the mixer runs on CPU1). `tools/hwbench.sh` runs the same benchmark on the loaded core with both CPUs and, with `DETHRACE_MISTER_FIXED_SOUND=1`, with sound.
-- `touch /tmp/dethrace_nolaunch` on the MiSTer keeps the core loaded without starting the game, so you can start a development binary by hand.
+- `touch /tmp/dethrace_nolaunch` on the MiSTer keeps the core loaded without starting the game, so you can start a development binary by hand. `/tmp/danik_hybrid_cores.log` shows what the launcher daemon did.
 
 ## Credits
 
