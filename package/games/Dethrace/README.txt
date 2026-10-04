@@ -25,8 +25,15 @@ OSD options
   Sound Volume  master volume of sound effects and cutscene audio
   Music Volume  master volume of the CD music
                 (both on top of the game's own volume settings)
-  Renderer      Optimized: rewritten rasteriser and fog loops, same picture,
-                about 1.6x faster. Original: the original rasteriser code.
+  Renderer      Optimized (default): rewritten rasteriser and fog loops,
+                pixel for pixel the same picture as the original code.
+                Fast: also simplifies the perspective texture mapping; the
+                picture is nearly the same, the game runs 20-25% faster.
+                Original: the original rasteriser code.
+  Lock to 30 FPS
+                shows every frame for exactly two video fields (29.8 fps)
+                instead of a frame rate that floats between 30 and 60 fps.
+                Steadier motion, best together with the Fast renderer.
   Menu OK, Menu Back
                 the gamepad button that acts as Enter / Esc in the game's
                 menus, even if it is also a race control. MiSTer (default)

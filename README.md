@@ -29,7 +29,8 @@ Quitting from the game's main menu returns to the MiSTer menu. The game's log is
 | Aspect ratio, Scandoubler Fx, Stereo Mix | as in other cores |
 | Sound Volume | master volume of sound effects and cutscene audio, on top of the game's own setting |
 | Music Volume | master volume of the CD music, on top of the game's own setting |
-| Renderer | **Optimized**: rewritten rasteriser and fog loops, same picture, about 1.6x faster. **Original**: the original rasteriser code |
+| Renderer | **Optimized** (default): rewritten rasteriser and fog loops, pixel for pixel the same picture as the original code. **Fast**: also simplifies the perspective texture mapping (exact every 16 pixels, interpolated in between); the picture is nearly the same and the game runs 20-25% faster. **Original**: the original rasteriser code |
+| Lock to 30 FPS | shows every frame for exactly two video fields (29.8 fps) instead of a frame rate that floats between 30 and 60 fps. Steadier motion, best together with the Fast renderer |
 | Menu OK, Menu Back | the gamepad button that acts as Enter / Esc in the game's menus, even if it is also a race control. **MiSTer** (default) uses the OK/Back buttons of your MiSTer menu |
 
 ## Controls
@@ -82,6 +83,9 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 
 - `./build_host.sh` and `./verify.sh grid|drive` build the game for the PC and play a scripted race. Every call to the optimised rasteriser is checked against the original (`PENTPRIM_VERIFY=1`), and the two must produce byte-identical output. The scripted race needs a `DATA` folder in the repository root.
 - The MiSTer platform driver can run headless with scripted input, screenshots and a sampling profiler. Its environment variables are documented at the top of `dethrace/src/harness/platforms/mister.c`.
+- `tools/bench.sh build/mister/dethrace <label> [script] [VAR=value ...]` plays `bench/bench.txt` headless on the MiSTer and fetches the frame times, profile and screenshots to `bench/out/<label>`. It runs with a fixed time step (`DETHRACE_MISTER_FIXED_STEP`) and full detail, so every run renders the same frames and results are comparable to about 1%. `PENTPRIM_FAST=1` and `PENTPRIM_REFERENCE=1` select the Fast and Original renderer. `tools/profsym.py` and `tools/proflines.py` break the profile down by function and by source line.
+- `tools/pgo.sh` makes a profile guided build (5-8% faster): it trains on the MiSTer with the benchmark, then rebuilds `build/mister/dethrace`. The release binary is built this way.
+- Benchmark on the MiSTer (ms per frame, 20261004): Original 28.0, Optimized 22.7, Fast 18.5. Sound is off in the benchmark because it makes runs differ; it costs the game thread next to nothing (the mixer runs on CPU1). `tools/hwbench.sh` runs the same benchmark on the loaded core with both CPUs and, with `DETHRACE_MISTER_FIXED_SOUND=1`, with sound.
 - `touch /tmp/dethrace_nolaunch` on the MiSTer keeps the core loaded without starting the game, so you can start a development binary by hand.
 
 ## Credits
