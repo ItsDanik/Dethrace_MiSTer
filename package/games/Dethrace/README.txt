@@ -5,6 +5,8 @@ The game (dethrace, a reimplementation of Carmageddon) runs on the MiSTer's
 ARM CPU; the Dethrace FPGA core provides native 15kHz video (CRT, VGA and
 HDMI), audio and input.
 
+Disclaimer: AI is being used to speed up development of this project.
+
 Requirements
   - danik_hybrid_cores, the launcher that comes with this release
     (Scripts/danik_hybrid_cores.sh): copy it to /media/fat/Scripts/ and run
