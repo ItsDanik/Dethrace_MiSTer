@@ -91,6 +91,10 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 - Benchmark on the MiSTer (ms per frame, 20261004): Original 28.0, Optimized 22.7, Fast 18.5. Sound is off in the benchmark because it makes runs differ; it costs the game thread next to nothing (the mixer runs on CPU1). `tools/hwbench.sh` runs the same benchmark on the loaded core with both CPUs and, with `DETHRACE_MISTER_FIXED_SOUND=1`, with sound.
 - `touch /tmp/dethrace_nolaunch` on the MiSTer keeps the core loaded without starting the game, so you can start a development binary by hand. `/tmp/danik_hybrid_cores.log` shows what the launcher daemon did.
 
+## Support
+
+If you enjoy this project, you can support my work on [Patreon](https://www.patreon.com/itsdanik).
+
 ## Credits
 
 - **[dethrace](https://github.com/dethrace-labs/dethrace)** by Jeff Harris and the dethrace-labs contributors: the reimplementation of Carmageddon this port is built on.
