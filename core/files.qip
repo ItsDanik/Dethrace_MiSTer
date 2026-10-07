@@ -1,3 +1,6 @@
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/dethrace_host.sv
+set_global_assignment -name QIP_FILE ../hybrid/rtl/hybrid.qip
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/dethrace_ddr_arb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/dethrace_rast.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/dethrace_rast_top.sv
 set_global_assignment -name SDC_FILE Dethrace.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE Dethrace.sv

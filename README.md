@@ -2,7 +2,7 @@
 
 Carmageddon (1997) on [MiSTer FPGA](https://github.com/MiSTer-devel/Main_MiSTer/wiki) as a hybrid core.
 
-The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the open source reimplementation of Carmageddon. It runs on the MiSTer's ARM CPU. The Dethrace FPGA core provides native 320x200 15kHz video (CRT, VGA and HDMI), 44.1kHz audio and keyboard, mouse and gamepad input. The two halves talk through shared DDR3 memory.
+The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the open source reimplementation of Carmageddon. It runs on the MiSTer's ARM CPU. The Dethrace FPGA core provides native 320x200 and 320x240 15kHz video (CRT, VGA and HDMI), 44.1kHz audio and keyboard, mouse and gamepad input. The two halves talk through shared DDR3 memory.
 
 > **Beta.** This is the first public release. Expect rough edges and please report problems in the issues.
 
@@ -10,7 +10,7 @@ Disclaimer: AI is being used to speed up development of this project.
 
 ## Requirements
 
-- **danik_hybrid_cores**, the launcher that comes in the release zip (`Scripts/danik_hybrid_cores.sh`): run it **once** from the MiSTer's `Scripts` menu. It starts the game whenever the core is loaded, keeps running after a reboot, and serves all our hybrid cores. Every hybrid core brings the launcher along and the newest version is the one that runs, so it never has to be run again after an update. Without it the core only shows colour bars.
+- **danik_hybrid_cores**, the launcher that comes in the release zip (`Scripts/danik_hybrid_cores.sh`): run it **once** from the MiSTer's `Scripts` menu. It starts the game whenever the core is loaded, keeps running after a reboot, and serves all our hybrid cores. Every hybrid core brings the launcher along and the newest version is the one that runs, so it never has to be run again after an update. Without it the core only shows the MiSTer logo.
 - **Carmageddon game data**, which is not included. Use your original CD or the GOG release (Carmageddon Max Pack).
 
 ## Installation
@@ -31,10 +31,14 @@ Quitting from the game's main menu returns to the MiSTer menu. The game's log is
 | Option | |
 |---|---|
 | Aspect ratio, Scandoubler Fx, Stereo Mix | as in other cores |
+| HDMI Only | as in the other hybrid cores, for resolutions of 640x400 and more: Dethrace has none, so nothing changes here |
+| CRT Options | for a 15kHz screen: *Horizontal Size*, *Horizontal Pos* and *Vertical Pos* fit the picture to it. The pixels stay as they are; HDMI is not affected. Not there with `forced_scandoubler=1` |
 | Sound Volume | master volume of sound effects and cutscene audio, on top of the game's own setting |
 | Music Volume | master volume of the CD music, on top of the game's own setting |
+| Resolution | **320x200** (default): the original mode. **320x240**: the view from outside the car is drawn with 240 rows instead of 200 during a race: the same view, finer vertically. The instruments keep their size: the ones at the top start at the top of the screen, the ones at the bottom (speed, revs, gear, damage) are about 10 rows above its lower edge. Menus, the cockpit view, the map and a reduced view size stay 320x200. Takes about 10% more time per frame. Applies at once |
 | Renderer | **Optimized** (default): rewritten rasteriser and fog loops, pixel for pixel the same picture as the original code. **Fast**: also simplifies the perspective texture mapping (exact every 16 pixels, interpolated in between); the picture is nearly the same and the game runs 20-25% faster. **Original**: the original rasteriser code |
 | Lock to 30 FPS | shows every frame for exactly two video fields (29.8 fps) instead of a frame rate that floats between 30 and 60 fps. Steadier motion, best together with the Fast renderer |
+| Cutscenes | **Off** skips the intro and the other videos |
 | Menu OK, Menu Back | the gamepad button that acts as Enter / Esc in the game's menus, even if it is also a race control. **MiSTer** (default) uses the OK/Back buttons of your MiSTer menu |
 
 ## Controls
@@ -56,6 +60,8 @@ Quitting from the game's main menu returns to the MiSTer menu. The game's log is
 
 To accelerate and brake with the triggers (RT/LT), assign them in the OSD under *Define Dethrace buttons*. MiSTer's default mapping can't use triggers.
 
+*Pratcam* (the driver's face in the corner, key P) has no button by default: give it one in *Define Dethrace buttons* to switch it on and off from the gamepad.
+
 *Menu OK* and *Menu Back* in *Define Dethrace buttons* are only needed for a button that has no race function. MiSTer doesn't let you assign a button twice there, so to use a race control as Enter/Esc in menus, pick that button in the OSD's Menu OK/Menu Back options instead.
 
 ## Building
@@ -76,7 +82,7 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 
 | Path | |
 |---|---|
-| `core/` | FPGA core, based on [Template_MiSTer](https://github.com/MiSTer-devel/Template_MiSTer). `rtl/dethrace_host.sv` documents the shared memory layout. `sim/run.sh` runs its testbench. |
+| `core/` | FPGA core, based on [Template_MiSTer](https://github.com/MiSTer-devel/Template_MiSTer). The host module is the shared `hybrid/rtl/hybrid_host.sv`, which documents the shared memory layout (`hybrid/sim/run.sh` runs its testbench). |
 | `dethrace/` | submodule: [ItsDanik/dethrace](https://github.com/ItsDanik/dethrace) branch `mister`, a fork of dethrace with the MiSTer platform driver in `src/harness/platforms/mister*.c` |
 | `dethrace/lib/BRender-v1.3.2` | submodule: [ItsDanik/BRender-v1.3.2](https://github.com/ItsDanik/BRender-v1.3.2) branch `mister`, with the optimised rasteriser |
 | `hybrid/` | submodule: [ItsDanik/Hybrid_MiSTer](https://github.com/ItsDanik/Hybrid_MiSTer), what all our hybrid cores share. Dethrace uses its launcher: `launcher/danik_hybrid_cores.sh`, the daemon that runs `games/<core>/danik_hybrid_launch.sh` while its core is loaded (its header documents it) |
@@ -92,6 +98,17 @@ The ARM toolchain image (Debian bullseye, glibc 2.31 to match the MiSTer) is bui
 - `tools/pgo.sh` makes a profile guided build (5-8% faster): it trains on the MiSTer with the benchmark, then rebuilds `build/mister/dethrace`. The release binary is built this way.
 - Benchmark on the MiSTer (ms per frame, 20261004): Original 28.0, Optimized 22.7, Fast 18.5. Sound is off in the benchmark because it makes runs differ; it costs the game thread next to nothing (the mixer runs on CPU1). `tools/hwbench.sh` runs the same benchmark on the loaded core with both CPUs and, with `DETHRACE_MISTER_FIXED_SOUND=1`, with sound.
 - `touch /tmp/dethrace_nolaunch` on the MiSTer keeps the core loaded without starting the game, so you can start a development binary by hand. `/tmp/danik_hybrid_cores.log` shows what the launcher daemon did.
+
+### FPGA rasteriser (in development)
+
+The next step is to let the FPGA fill the triangles: the game keeps the triangle setup and writes commands to a ring in shared memory, the core walks the edges and fills colour and depth in DDR3. It is not used by the released game yet.
+
+- `dethrace/lib/BRender-v1.3.2/drivers/pentprim/fpgarast.h` documents the commands, `fpgarast.c` has the emitter, the buffer ownership rules and a software model of the hardware. The model draws pixel for pixel what the Optimized renderer draws. `PENTPRIM_FPGA=1` plays the game through commands and the model (`./verify.sh` checks it against the original code like the other rewrites), `PENTPRIM_FPGA=2` gives the model its own copy of the buffers like the hardware has, which tests that everything that touches the buffers on the CPU asks for them first. `DETHRACE_MISTER_FRAMECRC=1` writes a checksum per frame to compare whole runs between renderers.
+- `core/rtl/dethrace_rast.sv` is the rasteriser, `dethrace_rast_top.sv` its command ring, `dethrace_ddr_arb.sv` shares the DDR3 port with the video/audio/input module. `core/sim/run_rast.sh <trace> [+fast|top]` replays a trace of the model in simulation and compares the buffers (the script's header shows how to record one).
+- `tools/rasttest.sh <trace>` does the same on the MiSTer with the core loaded and the game not running.
+- `DETHRACE_MISTER_RAST=1` makes the game on the MiSTer draw with the FPGA rasteriser (the platform's backend is `mister_rast.c`); `tools/rastbench.sh <binary> <core.rbf> <label>` runs the benchmark that way. With `DETHRACE_MISTER_FRAMECRC=1` the frames can be compared with another renderer's.
+- State: flat, Gouraud, textured (power of 2 and arbitrary width), lit textured and perspective correct triangles, the depth clear and the fog pass run on the FPGA. The benchmark race on the MiSTer is frame for frame identical to the Optimized renderer and takes 21.0 ms per frame (Optimized 24.6, Fast 19.8 with the same non-PGO build). The FPGA is the bottleneck: the CPU waits about 4.5 ms per frame for it, copies buffers for 3 ms and writes commands for 2 ms. Blended triangles, smoke and sparks are still drawn by the CPU, which fetches the buffers for them.
+- `PENTPRIM_NULL=1` skips all pixel loops and the fog pass: what is left (10.3 ms per frame in the benchmark) is the frame time the FPGA rasteriser can approach.
 
 ## Support
 
