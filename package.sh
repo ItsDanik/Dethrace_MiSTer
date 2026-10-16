@@ -7,6 +7,8 @@
 #   Scripts/danik_hybrid_ports.sh       the launcher, and its screen in
 #   Scripts/.danik_hybrid_ports/        (copies of both with the game: the
 #                                       newest one installed is the one used)
+#   games/dnk/danik_hybrid_cores.sh     the last version of the launcher before,
+#                                       which hands a running one over to it
 #   downloader_danik_hybrid_ports.ini   the database for update_all, which
 #                                       keeps the ports up to date from then on
 set -e
@@ -22,6 +24,7 @@ sh hybrid/launcher/ui/build.sh > /dev/null
 cp hybrid/launcher/danik_hybrid_ports.sh "$OUT/Scripts/danik_hybrid_ports.sh"
 cp hybrid/launcher/ui/danik_hybrid_ports_ui "$OUT/Scripts/.danik_hybrid_ports/danik_hybrid_ports_ui"
 cp hybrid/launcher/danik_hybrid_ports.sh hybrid/launcher/ui/danik_hybrid_ports_ui "$G/"
+cp hybrid/launcher/danik_hybrid_cores.sh "$OUT/games/dnk/danik_hybrid_cores.sh"
 cp hybrid/launcher/downloader_danik_hybrid_ports.ini "$OUT/"
 
 # the core, and a menu entry for each game: package/games.txt, a line each,
@@ -46,11 +49,13 @@ done
 
 # the game
 cp -r package/games/Dethrace/. "$G/"
+grep -v '^#' package/games.txt | grep '|' > "$G/games.txt"
 cp build/mister/dethrace "$G/Dethrace"
 cp build/mister/mh_message "$G/mh_message"
 hybrid/docker.sh arm-linux-gnueabihf-strip "$G/Dethrace" "$G/mh_message"
 chmod +x "$G/Dethrace" "$G/mh_message" "$G"/*.sh "$G/danik_hybrid_ports_ui" \
-    "$OUT/Scripts/danik_hybrid_ports.sh" "$OUT/Scripts/.danik_hybrid_ports/danik_hybrid_ports_ui"
+    "$OUT/Scripts/danik_hybrid_ports.sh" "$OUT/Scripts/.danik_hybrid_ports/danik_hybrid_ports_ui" \
+    "$OUT/games/dnk/danik_hybrid_cores.sh"
 cp dethrace/LICENSE "$G/LICENSE-dethrace.txt"
 cp LICENSE "$G/LICENSE-gpl3.txt"
 rm -f "dist/Dethrace_$DATE.zip"
