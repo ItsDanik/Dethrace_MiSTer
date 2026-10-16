@@ -1,18 +1,21 @@
 #!/bin/bash
 #
-# Dethrace (Carmageddon) launcher. danik_hybrid_cores (Scripts/danik_hybrid_cores.sh) runs
-# it when the Dethrace core is loaded and stops it, with SIGTERM to the process
-# group, when another core is loaded.
+# Dethrace (Carmageddon) launcher. danik_hybrid_ports (Scripts/danik_hybrid_ports.sh)
+# runs it when the Dethrace core is loaded (also with a game's set name, from
+# its menu entry: MISTER_HYBRID_SET, which the game reads) and stops it, with
+# SIGTERM to the process group, when another core is loaded.
 #
 # Laid out after the per-core handlers of MiSTer Frontier by MiSTer Organize
 # (https://github.com/MiSTerOrganize/MiSTer_Frontier, GPL-3.0), with thanks
 # for the inspiration. Licensed under the GPL-3.0.
 
-GAMEDIR="/media/fat/games/Dethrace"
-LOGDIR="/media/fat/logs/Dethrace"
+CORE="Dethrace"
+GAMEDIR="/media/fat/games/dnk/$CORE"
+LOGDIR="/media/fat/logs/dnk/$CORE"
+LOG="$LOGDIR/dethrace.log"
 
 cd "$GAMEDIR" || exit 1
-mkdir -p "$LOGDIR"
+mkdir -p "$LOGDIR" config saves
 
 # Only once
 exec 9> /tmp/dethrace.lock
@@ -21,24 +24,69 @@ flock -n 9 || exit 0
 # Development: keep the core loaded without starting the game
 [ -f /tmp/dethrace_nolaunch ] && exit 0
 
-if [ ! -f DATA/GENERAL.TXT ]; then
-    echo "No game data: copy Carmageddon's DATA folder to $GAMEDIR/DATA" > "$LOGDIR/dethrace.log"
-    exit 1
-fi
-
-# The launcher of releases before 20261004 is no longer used. If something is
-# still running it, it must not end up starting a second game.
-rm -f _handler.sh
-
 # FPGA settle after the core was just loaded
-sleep 1.5
-[ -n "$(pidof Dethrace)" ] && exit 0
+sleep 1
 
-mv -f "$LOGDIR/dethrace.log" "$LOGDIR/dethrace.prev.log" 2>/dev/null
+mv -f "$LOG" "$LOGDIR/dethrace.prev.log" 2>/dev/null
 
-# No HOME: dethrace.ini (optional) is then read from the game directory.
-# Both CPUs: the game pins its render thread to CPU0 (better DDR3 bandwidth,
-# Main_MiSTer lives on CPU1) and runs audio and the frame copy on CPU1.
-# The game loads the MiSTer menu itself when the player quits.
-export DETHRACE_MISTER_QUIT_TO_MENU=1
-exec env -u HOME -u XDG_DATA_HOME taskset 0x03 ./Dethrace --dir "$GAMEDIR" > "$LOGDIR/dethrace.log" 2>&1
+# What the game prints is kept in memory while it runs and goes to the log on
+# the SD card when it has left. The card is mounted "sync": a line printed
+# straight to it is a write that waits for the card, about 9ms in which the
+# game stands still. (A game that is still running when the MiSTer is
+# switched off leaves no log of that run.)
+RUNLOG=/tmp/dethrace.log
+: > "$RUNLOG"
+savelog() {
+    cat "$RUNLOG" >> "$LOG" 2>/dev/null
+    : > "$RUNLOG"
+}
+
+# For the hybrid core drivers in the binary: which core to attach to and its
+# default button mapping ("jn" in core/Dethrace.sv)
+export MISTER_HYBRID_CORE="$CORE"
+export MISTER_HYBRID_JN="B,Y,A,X,L,Select,R,Start"
+# Everything the game writes stays in its folder
+export HOME="$GAMEDIR"
+export XDG_CONFIG_HOME="$GAMEDIR/config"
+export XDG_DATA_HOME="$GAMEDIR/config"
+
+# Both CPUs: the game takes CPU0 (better DDR3 bandwidth, Main_MiSTer lives on
+# CPU1) and runs audio and the frame copy on CPU1. Everything else on the
+# MiSTer (scripts, daemons, interrupts) lands on CPU0 as well: without the
+# higher priority the game waits for it a quarter of the time and misses fields.
+# Exit code 42: the player quit a game picked from a list (MH_UI_Menu), start
+# again to show the list. Exit code 43: the core was loaded again while the
+# game ran (MH_CoreReloaded), start again once it has settled, unless it was
+# another core after all.
+GAME=
+# The game must not outlive us: on SIGTERM it saves its settings and quits
+trap '[ -n "$GAME" ] && kill "$GAME" 2>/dev/null && wait "$GAME"; savelog; exit 0' TERM INT
+while :; do
+    # No HOME: dethrace.ini (optional) is read from the game's folder. The
+    # game pins its render thread to CPU0 and runs audio and the frame copy
+    # on CPU1; it goes into SPLATPAK/ itself for the Splat Pack.
+    nice -n -20 taskset 0x03 env -u HOME -u XDG_DATA_HOME ./Dethrace --dir "$GAMEDIR" >> "$RUNLOG" 2>&1 &
+    GAME=$!
+    wait "$GAME"
+    RC=$?
+    savelog
+    if [ $RC -eq 43 ]; then
+        sleep 1
+        grep -q "^$CORE" /tmp/CORENAME 2>/dev/null || break
+    elif [ $RC -ne 42 ]; then
+        break
+    fi
+done
+GAME=
+
+# Unless another core was loaded meanwhile: a game that left with an error
+# (one that crashed: 128 + the signal) and put no message up says so on the
+# core's picture (./mh_message, host version 13), and a message stays there
+# until the player leaves the core. Else back to the MiSTer menu.
+if grep -q "^$CORE" /tmp/CORENAME 2>/dev/null; then
+    if [ $RC -ne 0 ] && ! ./mh_message --shown >> "$LOG" 2>&1; then
+        ./mh_message --error "The game stopped unexpectedly (exit code $RC).\nIts log: ${LOG#/media/fat/}" >> "$LOG" 2>&1
+        sleep 0.1
+    fi
+    ./mh_message --shown >> "$LOG" 2>&1 || echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+fi

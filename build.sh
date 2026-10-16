@@ -15,6 +15,10 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/src mister-dethrace-tc sh -c "
   cmake -S dethrace -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=/src/toolchain/mister.cmake \
     -DCMAKE_BUILD_TYPE=$TYPE -DCMAKE_C_FLAGS_RELWITHDEBINFO='-O2 -g' \
     -DCMAKE_C_FLAGS='$ARCH_FLAGS $EXTRA_CFLAGS' -DCMAKE_EXE_LINKER_FLAGS='-no-pie $EXTRA_LDFLAGS' \
-    -DDETHRACE_PLATFORM_SDL2=OFF -DDETHRACE_PLATFORM_MISTER=ON \
+    -DDETHRACE_PLATFORM_SDL2=OFF -DDETHRACE_PLATFORM_MISTER=ON -DMISTER_HYBRID_HPS=/src/hybrid/hps \
     -DDETHRACE_SOUND_ENABLED=ON -DDETHRACE_NET_ENABLED=OFF &&
   cmake --build $BUILD_DIR -j\$(nproc)"
+
+# The launch script's messages on the core's picture (hybrid/tools/mh_message.c)
+hybrid/docker.sh arm-linux-gnueabihf-gcc -O2 -static -Ihybrid/hps -o "$BUILD_DIR/mh_message" \
+    hybrid/tools/mh_message.c hybrid/hps/*.c -lpthread -lm

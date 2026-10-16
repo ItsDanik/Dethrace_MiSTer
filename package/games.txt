@@ -1,0 +1,9 @@
+# The games of this core, a line each: <id>|<title> (hybrid/README.md,
+# "Several games in one core"). Each is a menu entry, _Other/dnk-<title>.mgl;
+# with several, its set name is Dethrace_<id> (short: 31 characters at most in
+# all). The same lines are in the catalogue of hybrid/launcher/danik_hybrid_ports.sh.
+# The demos have no entry: the full game's starts its demo when the full game
+# is not there. Carmageddon's DATA is in the game's folder, the Splat Pack's
+# in SPLATPAK/ there.
+CARMA|Carmageddon
+SPLAT|Carmageddon: Splat Pack

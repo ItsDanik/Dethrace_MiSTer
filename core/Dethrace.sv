@@ -2,14 +2,10 @@
 //
 //  Dethrace (Carmageddon) hybrid core for MiSTer
 //
-//  The game itself runs on the HPS. This core scans the game's paletted
-//  framebuffer out of DDR3 with native 15kHz timings and hands input to
-//  the HPS. See ../hybrid/rtl/hybrid_host.sv for the shared memory layout
-//  and ../hybrid/README.md for what all hybrid cores share.
-//
-//  The triangle rasteriser (rtl/dethrace_rast_top.sv) draws into DDR3 from
-//  commands the game writes to a ring. It shares the DDR3 port with the
-//  host module through rtl/dethrace_ddr_arb.sv.
+//  The game itself runs on the HPS. This core scans the game's
+//  framebuffer out of DDR3 with native 15kHz timings, plays its audio and
+//  hands input to the HPS. See ../hybrid/rtl/hybrid_host.sv for the shared
+//  memory layout and ../hybrid/README.md for what all hybrid cores share.
 //
 //  This program is free software; you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License as published by the Free
@@ -46,46 +42,68 @@ assign BUTTONS = 0;
 
 //////////////////////////////////////////////////////////////////
 
-wire [1:0] ar = status[122:121];
-
-assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
-
-// Status bits [63:0] are forwarded to the HPS side, keep game options there
-// (decoded in dethrace/src/harness/platforms/mister_fpga.h). Defaults are 0.
+// Status bits [127:0] are forwarded to the HPS side. Bits [23:0] mean the same
+// in every hybrid core (MH_OSD_* in hybrid/hps/mister_hybrid.h), game options
+// start at bit 24 (decoded in dethrace/src/harness/platforms/mister_fpga.h). Defaults are 0.
+// The order of the options is the one in hybrid/README.md, "OSD".
 `include "build_id.v"
 localparam CONF_STR = {
 	"Dethrace;;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
+	"O[125:123],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer,HV-Integer;",
 	"O[4:2],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	// Not with direct_video (the HDMI output is the analog one then), and
 	// the CRT options not with forced_scandoubler: a VGA monitor has its own
-	"H5O[0],HDMI Only,No,Yes;",
+	// bit 1: bit 0 is the reset Main_MiSTer holds while it loads the core and
+	// clears after, so an option there was never kept (up to host version 12)
+	"H5O[1],HDMI Only,No,Yes;",
 	"H4P1,CRT Options;",
 	"P1-;",
 	// Horizontal Size: entries 0..7 are 0..+7, entries 8..31 are -24..-1
 	"P1O[68:64],Horizontal Size,0,+1,+2,+3,+4,+5,+6,+7,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
 	"P1O[72:69],Horizontal Pos,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
 	"P1O[76:73],Vertical Pos,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
+	// The HUD margins (MH_HudMargins(), hybrid/README.md "HUD margins"): how
+	// far the instruments at the top and at the bottom of a race in 320x240
+	// are from the edges, entry 0 is 10, the default. Greyed out (menu mask
+	// bit 0) while races are not in 320x240.
+	"P1-;",
+	"D0P1O[81:77],HUD (Top),10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,0,1,2,3,4,5,6,7,8,9;",
+	"D0P1O[86:82],HUD (Bottom),10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,0,1,2,3,4,5,6,7,8,9;",
 	"O[6:5],Stereo Mix,None,25%,50%,100%;",
+	// drawn by the hybrid library over the game's frames (MH_OSD_FPS)
+	"O[15],FPS Counter,Off,On;",
 	"-;",
 	"O[10:7],Sound Volume,100%,90%,80%,70%,60%,50%,40%,30%,20%,10%,0%;",
 	"O[14:11],Music Volume,100%,90%,80%,70%,60%,50%,40%,30%,20%,10%,0%;",
+	// the game's options, read in dethrace/src/harness/platforms/mister.c
 	"O[27],Resolution,320x200,320x240;",
 	"O[25:24],Renderer,Optimized,Fast,Original;",
 	"O[26],Lock to 30 FPS,Off,On;",
 	"O[28],Cutscenes,On,Off;",
+	// the gamepad's rumble when the car is hit (and the analog gas and brake
+	// on the right and left triggers, which need no option)
+	"O[30],Rumble,On,Off;",
+	// Cheats: Invulnerability holds until switched off; the triggers (T, bits
+	// 56..59, MH_OSDTriggers()) do their thing once each time, in a race
+	"P2,Cheats;",
+	"P2-;",
+	"P2O[29],Invulnerability,Off,On;",
+	"P2T[56],Instant Repair;",
+	"P2T[57],Extra Credits;",
+	"P2T[58],Finish Lap;",
 	"-;",
 	"O[19:16],Menu OK,MiSTer,A,B,X,Y,L,R,Select,Start;",
 	"O[23:20],Menu Back,MiSTer,A,B,X,Y,L,R,Select,Start;",
 	"-;",
-	// MiSTer's default map only knows the SNES-style pad (no triggers). Main refuses
-	// to map a button twice, so Menu OK/Back here are for spare buttons without a
-	// race function and unmapped by default; the OSD Menu OK/Back options cover
-	// buttons that have one (mister_joymap.c, which mirrors this "jn" list).
-	// Pratcam is unmapped by default as well, and last: mappings made before it
-	// was added stay valid.
+	// MiSTer's default map only knows the SNES-style pad. Main refuses to map a
+	// button twice, so Menu OK/Back here are for spare buttons without a game
+	// function and unmapped by default; the OSD Menu OK/Back options cover
+	// buttons that have one. The game knows this list as the JOY_*
+	// bits of dethrace/src/harness/platforms/mister_input.c (Pratcam after
+	// Menu OK/Back, without a default button); the launcher repeats "jn" as
+	// MISTER_HYBRID_JN (package/games/Dethrace/danik_hybrid_launch.sh).
 	"J1,Accelerate,Brake,Handbrake,Change View,Repair,Recover,Map,Pause,Menu OK,Menu Back,Pratcam;",
 	"jn,B,Y,A,X,L,Select,R,Start;",
 	"V,v",`BUILD_DATE
@@ -143,16 +161,16 @@ wire reset = RESET | buttons[1];
 
 //////////////////////////////////////////////////////////////////
 
-// The video modes of 640x400 and above have two forms (hybrid_host.sv):
-// interlaced at 15kHz for a 15kHz screen, progressive at 31kHz and more for
-// everything else; 800x600 and 1024x768 only exist in the second. A 15kHz
+// The video modes of 640x400 and 640x480 have two forms (hybrid_host.sv):
+// interlaced at 15kHz for a 15kHz screen, progressive at 31kHz for
+// everything else, the core's own picture without a game as well. A 15kHz
 // screen must never get the second, so it takes the player to say that none
 // is there: forced_scandoubler=1 in MiSTer.ini (the analog output is a VGA
 // monitor) or the option "HDMI Only", with which the analog output is
 // switched off for as long as such a signal is on it. Modes of 15kHz still
 // go to the analog output with "HDMI Only", and so does the OSD over them.
 // With direct_video the HDMI output feeds an analog screen: no "HDMI Only".
-wire       hdmi_only = status[0] & ~direct_video;
+wire       hdmi_only = status[1] & ~direct_video;
 wire       vga31 = forced_scandoubler | hdmi_only;
 
 wire       clk_vid;
@@ -170,15 +188,15 @@ hybrid_host host
 	.reset(reset),
 	.refclk(CLK_50M),
 
-	.ddr_busy(h_busy),
-	.ddr_burstcnt(h_burstcnt),
-	.ddr_addr(h_addr),
+	.ddr_busy(DDRAM_BUSY),
+	.ddr_burstcnt(DDRAM_BURSTCNT),
+	.ddr_addr(DDRAM_ADDR),
 	.ddr_dout(DDRAM_DOUT),
-	.ddr_dout_ready(h_dout_ready),
-	.ddr_rd(h_rd),
-	.ddr_din(h_din),
-	.ddr_be(h_be),
-	.ddr_we(h_we),
+	.ddr_dout_ready(DDRAM_DOUT_READY),
+	.ddr_rd(DDRAM_RD),
+	.ddr_din(DDRAM_DIN),
+	.ddr_be(DDRAM_BE),
+	.ddr_we(DDRAM_WE),
 
 	.joystick_0(joystick_0),
 	.joystick_1(joystick_1),
@@ -186,7 +204,7 @@ hybrid_host host
 	.joy_r_analog_0(joy_r_analog_0),
 	.joy_l_analog_1(joy_l_analog_1),
 	.joy_r_analog_1(joy_r_analog_1),
-	.osd_status(status[63:0]),
+	.osd_status(status),
 	.ps2_key(ps2_key),
 	.ps2_mouse(ps2_mouse),
 	.ps2_mouse_ext(ps2_mouse_ext),
@@ -217,72 +235,26 @@ hybrid_host host
 assign DDRAM_CLK = clk_sys;
 
 //////////////////////////////////////////////////////////////////
-// Rasteriser and the DDR3 port shared with it
+// Video output, on hybrid_host's video clock. The native signal is 15kHz, in
+// the video mode the game set (320x200 unless it asks hybrid_host for
+// another); video_mixer scandoubles it for VGA monitors (forced_scandoubler)
+// or when a scandoubler effect is selected, which is why its line buffer has
+// room for the 640 pixels of the widest 15kHz mode. Analog output is
+// untouched otherwise so CRTs get the real 15kHz signal. HDMI goes through
+// the framework's scaler; video_freak gives it the aspect ratio and the
+// integer scaling modes. The modes of 640x400 and above are not scandoubled
+// (hires): interlaced, the scaler weaves the two fields (VGA_F1).
 
-wire        h_busy, h_dout_ready, h_rd, h_we;
-wire  [7:0] h_burstcnt, h_be;
-wire [28:0] h_addr;
-wire [63:0] h_din;
-wire        r_busy, r_dout_ready, r_rd, r_we;
-wire  [7:0] r_burstcnt, r_be;
-wire [28:0] r_addr;
-wire [63:0] r_din;
-wire        f_busy, f_dout_ready, f_rd, f_we;
-wire  [7:0] f_burstcnt, f_be;
-wire [28:0] f_addr;
-wire [63:0] f_din;
-
-dethrace_ddr_arb ddr_arb
-(
-	.clk(clk_sys),
-	.reset(reset),
-
-	.ddr_busy(DDRAM_BUSY),
-	.ddr_burstcnt(DDRAM_BURSTCNT),
-	.ddr_addr(DDRAM_ADDR),
-	.ddr_dout(DDRAM_DOUT),
-	.ddr_dout_ready(DDRAM_DOUT_READY),
-	.ddr_rd(DDRAM_RD),
-	.ddr_din(DDRAM_DIN),
-	.ddr_be(DDRAM_BE),
-	.ddr_we(DDRAM_WE),
-
-	.c0_busy(h_busy), .c0_burstcnt(h_burstcnt), .c0_addr(h_addr), .c0_dout_ready(h_dout_ready),
-	.c0_rd(h_rd), .c0_din(h_din), .c0_be(h_be), .c0_we(h_we),
-	.c1_busy(r_busy), .c1_burstcnt(r_burstcnt), .c1_addr(r_addr), .c1_dout_ready(r_dout_ready),
-	.c1_rd(r_rd), .c1_din(r_din), .c1_be(r_be), .c1_we(r_we),
-	.c2_busy(f_busy), .c2_burstcnt(f_burstcnt), .c2_addr(f_addr), .c2_dout_ready(f_dout_ready),
-	.c2_rd(f_rd), .c2_din(f_din), .c2_be(f_be), .c2_we(f_we)
-);
-
-dethrace_rast_top rast
-(
-	.clk(clk_sys),
-	.reset(reset),
-	.mem_dout(DDRAM_DOUT),
-
-	.r_busy(r_busy), .r_burstcnt(r_burstcnt), .r_addr(r_addr), .r_dout_ready(r_dout_ready),
-	.r_rd(r_rd), .r_din(r_din), .r_be(r_be), .r_we(r_we),
-	.f_busy(f_busy), .f_burstcnt(f_burstcnt), .f_addr(f_addr), .f_dout_ready(f_dout_ready),
-	.f_rd(f_rd), .f_din(f_din), .f_be(f_be), .f_we(f_we)
-);
-
-//////////////////////////////////////////////////////////////////
-// Video output, on hybrid_host's video clock. The game uses 320x200 and,
-// with the option "Resolution", 320x240 for the races.
-// The native signal is 15kHz; video_mixer scandoubles it
-// for VGA monitors (forced_scandoubler) or when a scandoubler effect is
-// selected. Analog output is untouched otherwise so CRTs get the real
-// 15kHz signal.
-
+wire [1:0] ar = status[122:121];
 wire [2:0] scale = status[4:2];
 wire [2:0] sl = scale ? scale - 1'd1 : 3'd0;
+wire       vga_de;
 
 assign CLK_VIDEO = clk_vid;
 assign VGA_SL = sl[1:0];
 assign VGA_F1 = f1;
 
-video_mixer #(.LINE_LENGTH(320), .HALF_DEPTH(0), .GAMMA(1)) video_mixer
+video_mixer #(.LINE_LENGTH(640), .HALF_DEPTH(0), .GAMMA(1)) video_mixer
 (
 	.CLK_VIDEO(CLK_VIDEO),
 	.CE_PIXEL(CE_PIXEL),
@@ -309,7 +281,26 @@ video_mixer #(.LINE_LENGTH(320), .HALF_DEPTH(0), .GAMMA(1)) video_mixer
 	.VGA_B(VGA_B),
 	.VGA_VS(VGA_VS),
 	.VGA_HS(VGA_HS),
-	.VGA_DE(VGA_DE)
+	.VGA_DE(vga_de)
+);
+
+video_freak video_freak
+(
+	.CLK_VIDEO(CLK_VIDEO),
+	.CE_PIXEL(CE_PIXEL),
+	.VGA_VS(VGA_VS),
+	.HDMI_WIDTH(HDMI_WIDTH),
+	.HDMI_HEIGHT(HDMI_HEIGHT),
+	.VGA_DE(VGA_DE),
+	.VIDEO_ARX(VIDEO_ARX),
+	.VIDEO_ARY(VIDEO_ARY),
+
+	.VGA_DE_IN(vga_de),
+	.ARX((!ar) ? 12'd4 : (ar - 1'd1)),
+	.ARY((!ar) ? 12'd3 : 12'd0),
+	.CROP_SIZE(0),
+	.CROP_OFF(0),
+	.SCALE(status[125:123])
 );
 
 endmodule
