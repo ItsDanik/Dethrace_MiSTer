@@ -5,7 +5,7 @@
 #   results in bench/out/<label>/ (log.txt, profile.bin, maps.txt, frametimes.txt)
 set -e
 cd "$(dirname "$0")/.."
-HOST=${MISTER:-root@192.168.1.206}
+HOST=${MISTER:-root@192.168.1.205}
 BIN=$1; LABEL=$2; SCRIPT=${3:-bench}; shift 2; [ $# -gt 0 ] && shift
 DEV=/media/fat/dethrace-dev
 OUT=bench/out/$LABEL

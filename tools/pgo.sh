@@ -5,7 +5,7 @@
 # A later plain ./build.sh goes back to the normal build.
 set -e
 cd "$(dirname "$0")/.."
-HOST=${MISTER:-root@192.168.1.206}
+HOST=${MISTER:-root@192.168.1.205}
 find build/mister -name '*.gcda' -delete 2> /dev/null || true
 EXTRA_CFLAGS=-fprofile-generate EXTRA_LDFLAGS=-fprofile-generate ./build.sh
 ssh "$HOST" "rm -rf /tmp/gcda"

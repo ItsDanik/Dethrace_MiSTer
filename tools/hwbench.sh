@@ -5,7 +5,7 @@
 # usage: tools/hwbench.sh <binary> <label> [VAR=value ...]
 set -e
 cd "$(dirname "$0")/.."
-HOST=${MISTER:-root@192.168.1.206}
+HOST=${MISTER:-root@192.168.1.205}
 BIN=$1; LABEL=$2; shift 2
 DEV=/media/fat/dethrace-dev
 OUT=bench/out/$LABEL

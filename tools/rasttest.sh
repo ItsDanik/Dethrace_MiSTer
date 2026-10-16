@@ -5,7 +5,7 @@
 # usage: tools/rasttest.sh <trace dir> [runs]
 set -e
 cd "$(dirname "$0")/.."
-HOST=${MISTER:-root@192.168.1.206}
+HOST=${MISTER:-root@192.168.1.205}
 mkdir -p build/rasttest
 docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/src mister-dethrace-tc sh -c \
   "arm-linux-gnueabihf-gcc -O2 -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=hard -o /src/build/rasttest/rasttest /src/tools/rasttest.c"

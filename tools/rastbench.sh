@@ -7,7 +7,7 @@
 #   results in bench/out/<label>/
 set -e
 cd "$(dirname "$0")/.."
-HOST=${MISTER:-root@192.168.1.206}
+HOST=${MISTER:-root@192.168.1.205}
 BIN=$1; RBF=$2; LABEL=$3; shift 3
 DEV=/media/fat/dethrace-dev
 OUT=bench/out/$LABEL
