@@ -29,11 +29,13 @@ By hand:
    - `games/dnk/Dethrace/`, the game binary and its launch script
    - `Scripts/danik_hybrid_ports.sh`, the launcher (from [Hybrid_MiSTer](https://github.com/ItsDanik/Hybrid_MiSTer))
    - `downloader_danik_hybrid_ports.ini`, with which `update_all` keeps the ports up to date from then on
-2. Copy Carmageddon's `DATA` folder to `/media/fat/games/dnk/Dethrace/DATA` (`DATA/GENERAL.TXT` must exist).
-3. Optional, the Splat Pack: copy its `DATA` folder to `/media/fat/games/dnk/Dethrace/SPLATPAK/DATA`.
+2. Copy Carmageddon's `DATA` folder, whole and as it is, to `/media/fat/games/dnk/Dethrace/DATA` (`DATA/GENERAL.TXT` must exist).
+3. Optional, the Splat Pack: copy its `DATA` folder, whole, to `/media/fat/games/dnk/Dethrace/SPLATPAK/DATA`.
 4. Optional CD music (GOG release): copy the `MUSIC` folder (`Track02.ogg` ...) to `/media/fat/games/dnk/Dethrace/MUSIC` (the Splat Pack's to `SPLATPAK/MUSIC`).
 5. Run **danik_hybrid_ports** from the `Scripts` menu, if you have not done so before (see Requirements).
 6. Load the game from the `Other` menu, e.g. **dnk-Carmageddon**.
+
+The game data can go on a USB drive instead, into the same folders there (`/media/usb0/games/dnk/Dethrace/DATA` and so on): the game looks for it there first, and then keeps its settings and saved games there as well. Everything else stays on the SD card.
 
 A menu entry starts the demo of its game when the full game is not there. When a game's files are missing, the core says which files to copy where. Each game keeps its own OSD settings and button mappings. The core file itself (`_Other/dnk/dnk-Dethrace_*.rbf`, or from *Recent*) lists the games that are there to pick from; quitting a game then returns to the list, otherwise to the MiSTer menu. The game's log is in `/media/fat/logs/dnk/Dethrace/dethrace.log`.
 
@@ -53,7 +55,6 @@ A menu entry starts the demo of its game when the full game is not there. When a
 | Cutscenes | **Off** skips the intro and the other videos |
 | Rumble | **On** (default): the controller rumbles when the car is hit. **Off** |
 | Cheats | in a race: **Invulnerability**: the car takes no damage while it is on. **Instant Repair**: the car repaired at once. **Extra Credits**: 10000 credits. **Finish Lap**: the lap counts as completed (the last one finishes the race) |
-| Menu OK, Menu Back | the gamepad button that acts as Enter / Esc in the game's menus, even if it is also a race control. **MiSTer** (default) uses the OK/Back buttons of your MiSTer menu |
 
 ## Controls
 
@@ -77,11 +78,15 @@ A menu entry starts the demo of its game when the full game is not there. When a
 
 The triggers work without any mapping: MiSTer passes no trigger axes to a core, so the game reads them from the controller itself (the one pressed furthest, if there are several). The buttons for gas and brake work as well.
 
+**Racing wheel**: the wheels MiSTer itself knows (Logitech G25, G27, G29, Driving Force, Driving Force Pro and GT; Fanatec ClubSport V2.5, Podium DD1 and DD2; Thrustmaster T300RS, F430 and FGT, and a few adapters) steer with the wheel and drive with the pedals, analog: the gas pedal is the right trigger, the brake the left. Map the wheel's buttons in the OSD as for a gamepad. While a wheel is connected, a gamepad's stick pushed up also counts as a pedal, and the gas pedal moves the menus' lines like the stick up.
+
 The controller rumbles when the car is hit, the harder the hit the stronger, on every controller that can (OSD option *Rumble*).
 
 *Pratcam* (the driver's face in the corner, key P) has no button by default: give it one in *Define Dethrace buttons* to switch it on and off from the gamepad.
 
-*Menu OK* and *Menu Back* in *Define Dethrace buttons* are only needed for a button that has no race function. MiSTer doesn't let you assign a button twice there, so to use a race control as Enter/Esc in menus, pick that button in the OSD's Menu OK/Menu Back options instead.
+In the game's menus the buttons that act as Enter and Esc are the ones of your MiSTer menu, even if they are also race controls: its *Menu OK* / *Menu Back* if you set them in *Define joystick buttons*, else its A / B. A controller never set up in MiSTer confirms and goes back as on its console: Cross / Circle on PlayStation, A / B on Xbox and on Nintendo.
+
+*Menu OK* and *Menu Back* in *Define Dethrace buttons* are only needed for a spare button without a race function. While the OSD is open, the game gets no input.
 
 ## Building
 

@@ -13,8 +13,14 @@ CORE="Dethrace"
 GAMEDIR="/media/fat/games/dnk/$CORE"
 LOGDIR="/media/fat/logs/dnk/$CORE"
 LOG="$LOGDIR/dethrace.log"
+# The game's data, settings and saved games: games/dnk/Dethrace/ on a USB drive
+# if the player put the folder there (the first of usb0..usb7 that has it,
+# as Main_MiSTer looks for a core's games there before the SD card), else on
+# the SD card. The game runs in that folder. Its programs stay in GAMEDIR on
+# the SD card, where Downloader installs them: USB drives are mounted noexec.
+DATADIR=$(for d in /media/usb[0-7]/games/dnk/"$CORE" "$GAMEDIR"; do [ -d "$d" ] && { echo "$d"; break; }; done)
 
-cd "$GAMEDIR" || exit 1
+cd "$DATADIR" || exit 1
 mkdir -p "$LOGDIR" config saves
 
 # Only once
@@ -28,6 +34,7 @@ flock -n 9 || exit 0
 sleep 1
 
 mv -f "$LOG" "$LOGDIR/dethrace.prev.log" 2>/dev/null
+echo "Game data in $DATADIR" > "$LOG"
 
 # What the game prints is kept in memory while it runs and goes to the log on
 # the SD card when it has left. The card is mounted "sync": a line printed
@@ -46,9 +53,9 @@ savelog() {
 export MISTER_HYBRID_CORE="$CORE"
 export MISTER_HYBRID_JN="B,Y,A,X,L,Select,R,Start"
 # Everything the game writes stays in its folder
-export HOME="$GAMEDIR"
-export XDG_CONFIG_HOME="$GAMEDIR/config"
-export XDG_DATA_HOME="$GAMEDIR/config"
+export HOME="$DATADIR"
+export XDG_CONFIG_HOME="$DATADIR/config"
+export XDG_DATA_HOME="$DATADIR/config"
 
 # Both CPUs: the game takes CPU0 (better DDR3 bandwidth, Main_MiSTer lives on
 # CPU1) and runs audio and the frame copy on CPU1. Everything else on the
@@ -62,10 +69,13 @@ GAME=
 # The game must not outlive us: on SIGTERM it saves its settings and quits
 trap '[ -n "$GAME" ] && kill "$GAME" 2>/dev/null && wait "$GAME"; savelog; exit 0' TERM INT
 while :; do
-    # No HOME: dethrace.ini (optional) is read from the game's folder. The
-    # game pins its render thread to CPU0 and runs audio and the frame copy
-    # on CPU1; it goes into SPLATPAK/ itself for the Splat Pack.
-    nice -n -20 taskset 0x03 env -u HOME -u XDG_DATA_HOME ./Dethrace --dir "$GAMEDIR" >> "$RUNLOG" 2>&1 &
+    # GAME: its command line (where it finds data, settings and saved games:
+    # DATADIR, the current folder; what came with the port, libraries the game
+    # loads among them: GAMEDIR). No HOME: dethrace.ini (optional) is read
+    # from the game's folder. The game pins its render thread to CPU0 and runs
+    # audio and the frame copy on CPU1; it goes into SPLATPAK/ itself for the
+    # Splat Pack.
+    nice -n -20 taskset 0x03 env -u HOME -u XDG_DATA_HOME "$GAMEDIR/Dethrace" --dir "$DATADIR" >> "$RUNLOG" 2>&1 &
     GAME=$!
     wait "$GAME"
     RC=$?
@@ -84,9 +94,9 @@ GAME=
 # core's picture (./mh_message, host version 13), and a message stays there
 # until the player leaves the core. Else back to the MiSTer menu.
 if grep -q "^$CORE" /tmp/CORENAME 2>/dev/null; then
-    if [ $RC -ne 0 ] && ! ./mh_message --shown >> "$LOG" 2>&1; then
-        ./mh_message --error "The game stopped unexpectedly (exit code $RC).\nIts log: ${LOG#/media/fat/}" >> "$LOG" 2>&1
+    if [ $RC -ne 0 ] && ! "$GAMEDIR/mh_message" --shown >> "$LOG" 2>&1; then
+        "$GAMEDIR/mh_message" --error "The game stopped unexpectedly (exit code $RC).\nIts log: ${LOG#/media/fat/}" >> "$LOG" 2>&1
         sleep 0.1
     fi
-    ./mh_message --shown >> "$LOG" 2>&1 || echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+    "$GAMEDIR/mh_message" --shown >> "$LOG" 2>&1 || echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
 fi
