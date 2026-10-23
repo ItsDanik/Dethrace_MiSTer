@@ -3,7 +3,9 @@
 # in the layout of the hybrid ports (hybrid/README.md, "Naming and layout"):
 #   _Other/dnk-<title>.mgl             a menu entry for each game (package/games.txt)
 #   _Other/dnk/dnk-Dethrace_<date>.rbf    the core, not in the menu itself
-#   games/dnk/Dethrace/                   the game
+#   games/dnk/Dethrace/                   the game, its logos in logos/
+#   games/dnk/SoundFonts/               GeneralUser GS and its licence, if the
+#                                       games play MIDI (MIDI_SYNTH 1)
 #   Scripts/danik_hybrid_ports.sh       the launcher, and its screen in
 #   Scripts/.danik_hybrid_ports/        (copies of both with the game: the
 #                                       newest one installed is the one used)
@@ -47,9 +49,22 @@ grep -v '^#' package/games.txt | grep '|' | while IFS='|' read -r id title; do
         > "$OUT/_Other/dnk-$file.mgl"
 done
 
-# the game
+# the game, and its games for the database's catalogue (the launcher's
+# screen offers what that has) and for the launcher without one
 cp -r package/games/Dethrace/. "$G/"
 grep -v '^#' package/games.txt | grep '|' > "$G/games.txt"
+# each game's logo, shown at its start (host version 17, hybrid/docs/game_logo.md):
+# package/logos/<id>.png, 440x200, as logos/<id>.mhl next to the program
+mkdir "$G/logos"
+grep -v '^#' package/games.txt | grep '|' | while IFS='|' read -r id title; do
+    [ -f "package/logos/$id.png" ] || { echo "package/logos/$id.png is missing: every game of package/games.txt has its logo, 440x200 (hybrid/docs/game_logo.md)" >&2; exit 1; }
+    python3 hybrid/tools/make_logo.py "package/logos/$id.png" "$G/logos/$id.mhl" > /dev/null
+done
+# the SoundFont of the core's MIDI synthesizer, for a core that has it
+# (MIDI_SYNTH 1): fetched at its pinned version, never committed
+if grep -q '^localparam MIDI_SYNTH = 1;' core/Dethrace.sv; then
+    sh hybrid/tools/soundfont.sh "$OUT/games/dnk/SoundFonts"
+fi
 cp build/mister/dethrace "$G/Dethrace"
 cp build/mister/mh_message "$G/mh_message"
 hybrid/docker.sh arm-linux-gnueabihf-strip "$G/Dethrace" "$G/mh_message"

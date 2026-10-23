@@ -46,15 +46,16 @@ A menu entry starts the demo of its game when the full game is not there. When a
 | Aspect ratio, Scale, Scandoubler Fx, Stereo Mix | as in other cores |
 | FPS Counter | shows the pictures per second in the top left corner |
 | HDMI Only | as in the other hybrid ports, for resolutions of 640x400 and more: Dethrace has none, so nothing changes here |
-| CRT Options | for a 15kHz screen: *Horizontal Size*, *Horizontal Pos* and *Vertical Pos* fit the picture to it. The pixels stay as they are; HDMI is not affected. The size is for the game's picture: the core's own, with its messages, keeps its width. Not there with `forced_scandoubler=1`. *HUD (Top)* and *HUD (Bottom)*: in a race in 320x240, how many lines the instruments at the top and at the bottom are from the edges of the screen, 0 to 24 (10 by default), so that a CRT's overscan does not hide them; greyed out with 320x200 |
+| CRT Options | for a 15kHz screen: *Horizontal Size*, *Horizontal Pos* and *Vertical Pos* fit the picture to it. The pixels stay as they are; HDMI is not affected. The size is for the game's picture: the core's own, with its messages, keeps its width. Not there with `forced_scandoubler=1`. *HUD (Top)* and *HUD (Bottom)*: in a race in 320x240, how many lines the instruments at the top and at the bottom are from the edges of the screen, 0 to 24 (0 by default), so that a CRT's overscan does not hide them; greyed out with 320x200 |
 | Sound Volume | master volume of sound effects and cutscene audio, on top of the game's own setting |
 | Music Volume | master volume of the CD music, on top of the game's own setting |
-| Resolution | **320x200** (default): the original mode. **320x240**: the view from outside the car is drawn with 240 rows instead of 200 during a race: the same view, finer vertically. The instruments keep their size and sit the *HUD (Top)* / *HUD (Bottom)* margins from the edges (10 rows by default). Menus, the cockpit view, the map and a reduced view size stay 320x200. Takes about 10% more time per frame. Applies at once |
+| Resolution | **320x200** (default): the original mode. **320x240**: the view from outside the car is drawn with 240 rows instead of 200 during a race: the same view, finer vertically. The instruments keep their size and sit the *HUD (Top)* / *HUD (Bottom)* margins from the edges (0 rows by default). Menus, the cockpit view, the map and a reduced view size stay 320x200. Takes about 10% more time per frame. Applies at once |
 | Renderer | **Optimized** (default): rewritten rasteriser and fog loops, pixel for pixel the same picture as the original code. **Fast**: also simplifies the perspective texture mapping (exact every 16 pixels, interpolated in between); the picture is nearly the same and the game runs 20-25% faster. **Original**: the original rasteriser code |
 | Lock to 30 FPS | shows every frame for exactly two video fields (29.8 fps) instead of a frame rate that floats between 30 and 60 fps. Steadier motion, best together with the Fast renderer |
 | Cutscenes | **Off** skips the intro and the other videos |
 | Rumble | **On** (default): the controller rumbles when the car is hit. **Off** |
 | Cheats | in a race: **Invulnerability**: the car takes no damage while it is on. **Instant Repair**: the car repaired at once. **Extra Credits**: 10000 credits. **Finish Lap**: the lap counts as completed (the last one finishes the race) |
+| Save Diagnostic Report | the last line: see [If something is wrong](#if-something-is-wrong) |
 
 ## Controls
 
@@ -87,6 +88,12 @@ The controller rumbles when the car is hit, the harder the hit the stronger, on 
 In the game's menus the buttons that act as Enter and Esc are the ones of your MiSTer menu, even if they are also race controls: its *Menu OK* / *Menu Back* if you set them in *Define joystick buttons*, else its A / B. A controller never set up in MiSTer confirms and goes back as on its console: Cross / Circle on PlayStation, A / B on Xbox and on Nintendo.
 
 *Menu OK* and *Menu Back* in *Define Dethrace buttons* are only needed for a spare button without a race function. While the OSD is open, the game gets no input.
+
+## If something is wrong
+
+If the game stutters, the sound breaks up or something else is wrong, open the OSD while it happens and pick **Save Diagnostic Report**, the last line of the menu. The game keeps running; MiSTer's info box says the report is saved in `games/dnk/diagnostics/` on the SD card. Send that file (`Dethrace_<date>_<time>.zip`) with a few words on what went wrong.
+
+The report has the setup (versions, the video and audio lines of `MiSTer.ini`, the OSD settings), how the last 60 seconds went, the game's log and a screenshot. Nothing else: no network settings, addresses, saved games or lists of your files.
 
 ## Building
 
