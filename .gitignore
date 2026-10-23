@@ -3,6 +3,9 @@
 /MUSIC/
 /SAVEGAME/
 
+# Logs of builds
+*.log
+
 # Build outputs
 /build/
 /dist/
