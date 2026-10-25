@@ -19,7 +19,8 @@ Game files
 Playing
   1. Run danik_hybrid_ports once from the MiSTer's Scripts menu. It starts
      the game whenever its menu entry is loaded.
-  2. Load the game from the Other menu, e.g. dnk-Carmageddon.
+  2. Load the game from the Other menu, e.g. dnk-Carmageddon, or from the
+     Hybrid Ports folder if you moved the games there in the launcher.
   Buttons are changed in the OSD under "Define Dethrace buttons". A button
   left without a name there does not reach the game at all: name every
   button, or leave the definition as it is.

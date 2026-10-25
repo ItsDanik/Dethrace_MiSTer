@@ -35,7 +35,7 @@ With `update_all` (Downloader 2.4 or newer, which update_all keeps up to date):
    | Carmageddon | its `DATA` folder to `/media/fat/games/dnk/Dethrace/DATA` (`DATA/GENERAL.TXT` must exist) |
    | Carmageddon: Splat Pack (optional) | its `DATA` folder to `/media/fat/games/dnk/Dethrace/SPLATPAK/DATA` |
    | CD music (optional, GOG release) | the `MUSIC` folder (`Track02.ogg` ...) to `/media/fat/games/dnk/Dethrace/MUSIC`, the Splat Pack's to `SPLATPAK/MUSIC` |
-5. Load the game from the `Other` menu, e.g. **dnk-Carmageddon**.
+5. Load the game from the `Other` menu, e.g. **dnk-Carmageddon**, or from the `Hybrid Ports` folder if you moved the games there in the launcher.
 
 > [!NOTE]
 > The game data can go on a USB drive instead, into the same folder there (`/media/usb0/games/dnk/Dethrace/`): the game looks for it there first, and then keeps its settings and saved games there as well. Everything else stays on the SD card.
