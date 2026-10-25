@@ -1,0 +1,5 @@
+# The games of package/games.txt for dnkLauncher, the frontend (hybrid/docs/dnklauncher.md),
+# a line each: <id>|<year>|<developer>|<description>. The description is shown on the
+# game's Details page, at most 4 lines there (about 340 characters).
+CARMA|1997|Stainless Software|Racing where crossing the line first is only one way to win: wreck every rival, or run down every pedestrian, and the race is yours too. Cities, mines and industrial zones to drive anywhere in, cars that crumple and shed parts, and a clock fed by mayhem. Notorious, and censored in several countries.
+SPLAT|1997|Stainless Software|The Splat Pack, Carmageddon's expansion: new levels, new cars and new opponents, snow-covered ones among them, and new power-ups. The rules stay the same: wreck the rivals, run down the pedestrians or race through the checkpoints, before the clock runs out.
