@@ -17,7 +17,7 @@ The game itself is [dethrace](https://github.com/dethrace-labs/dethrace), the op
 
 ## Requirements
 
-- **danik_hybrid_ports**, the launcher (`Scripts/danik_hybrid_ports.sh`): run it **once** from the MiSTer's `Scripts` menu. It starts the game whenever its menu entry is loaded, keeps running after a reboot, and serves all our hybrid ports; its screen picks which ports and games to have, and can keep them up to date through `update_all`. Without it the core says "Game not running".
+- **danik_hybrid_ports**, the launcher: run it **once** from the MiSTer's `Scripts` menu ([The launcher](#the-launcher)). Without it the core says "Game not running".
 - **Game data**, which is not included: the `DATA` folder of Carmageddon, from your original CD or the GOG release (Carmageddon Max Pack), and optionally that of the Splat Pack, or of a demo.
 - **Recommended:** a gamepad with two analog sticks and analog triggers, like an Xbox or PlayStation controller. A gamepad without them works but is not recommended. The game can also be played with a keyboard.
 
@@ -41,6 +41,25 @@ With `update_all` (Downloader 2.4 or newer, which update_all keeps up to date):
 > The game data can go on a USB drive instead, into the same folder there (`/media/usb0/games/dnk/Dethrace/`): the game looks for it there first, and then keeps its settings and saved games there as well. Everything else stays on the SD card.
 
 A menu entry starts the demo of its game when the full game is not there. When a game's files are missing, the core says which files to copy where. Each game keeps its own OSD settings and button mappings. The core file itself (`_Other/dnk/dnk-Dethrace_*.rbf`, or from *Recent*) lists the games that are there to pick from; quitting a game then returns to the list, otherwise to the MiSTer menu. The game's log is in `/media/fat/logs/dnk/Dethrace/dethrace.log`.
+
+## The launcher
+
+<p align="center"><img src="https://raw.githubusercontent.com/ItsDanik/Hybrid_MiSTer/main/docs/launcher.png" alt="The launcher's screen" width="70%"></p>
+
+**danik_hybrid_ports** is what turns a menu entry into a running game. Once you've run it from the `Scripts` menu, it starts with the MiSTer, watches which core is loaded, and starts the game whenever a hybrid port's menu entry is loaded. It serves all our hybrid ports at once and updates itself through `update_all`.
+
+Run it from the `Scripts` menu again whenever you want to change something. Its screen has:
+
+- **Launcher**: on or off. Off, the ports' games no longer start (the core says "Game not running"), until you turn it on again.
+- **Menu entries**: where the games appear in the MiSTer menu:
+  - **Other, as dnk-\<Title\>**: each game in the `Other` menu, e.g. **dnk-Doom** (the default).
+  - **Other/Hybrid Ports**: all of them in a *Hybrid Ports* folder in `Other`, without the `dnk-` in front.
+  - **Main menu/Hybrid Ports**: a *Hybrid Ports* folder of its own in the main menu, next to `Arcade`, `Console` and `Other`.
+
+  Moving them keeps each game's settings and button mappings. Favourites, recent lists and Zaparoo tags that point at the old place have to be made again.
+- **The ports and their games**, a tickbox each. Tick what you want, untick what you don't.
+
+*X: Apply* installs what is ticked and removes what is not, through Downloader, and moves the menu entries if you chose another place. When a port is removed, your game data, saved games and settings stay, and ticking it again brings it back as it was.
 
 ## OSD options
 
