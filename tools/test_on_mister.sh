@@ -29,6 +29,9 @@
 # who put the folder there: in games/dnk/.Dethrace_test/ (games/dnk/.Dethrace_empty/
 # for nodata), the installed data copied there at the first such test; the
 # package stays in /tmp (USB drives are noexec). "stop" removes it too.
+# Each copy shows how far it is: pv's percentage and time left for what goes
+# over the network (without pv, the name of every file), a percentage and the
+# name of every file copied on the MiSTer.
 set -e
 cd "$(dirname "$0")/.."
 NAME=Dethrace
@@ -45,6 +48,18 @@ COPY="*"
 
 remote() {
     ssh -o LogLevel=ERROR "$HOST" "$@"
+}
+
+# send <folder> <folder on the MiSTer>: what is in it
+send() {
+    if command -v pv > /dev/null; then
+        size=$(cd "$1" && tar cf - . | wc -c)
+        (cd "$1" && tar cf - .) | pv -f -i 0.5 -s "$size" -N "${2#/media/fat/}" |
+            remote "tar xf - --no-same-owner -C $2"
+    else
+        echo "${2#/media/fat/}:"
+        (cd "$1" && tar cf - .) | remote "tar xvf - --no-same-owner -C $2"
+    fi
 }
 
 # the launch script, which stops the game (and saves its log) on SIGTERM
@@ -83,6 +98,7 @@ case $WHAT in
         if [ "$GAMES" -gt 1 ]; then SET=${NAME}_$WHAT; else SET=$NAME; fi ;;
 esac
 
+echo "Packaging..."
 ./package.sh > /dev/null
 OUT=$(ls -d dist/${NAME}_[0-9]*/ | tail -n 1)
 OUT=${OUT%/}
@@ -94,13 +110,21 @@ if ! remote "[ -d $T ]"; then
     remote "mkdir -p $T $T.empty
         for d in /media/usb[0-7]/games/dnk/$NAME /media/fat/games/dnk/$NAME /media/fat/games/$NAME; do
             [ -d \$d ] || continue
+            echo \"  links to the files of \$d\"
             cp -rs \$d/. $T/
             set -f
+            n=\$(find $T -type l | wc -l)
+            i=0
             find $T -type l | while IFS= read -r f; do
+                i=\$((i + 1))
                 t=\$(readlink \"\$f\")
                 [ -f \"\$t\" ] && [ \$(stat -c %s \"\$t\") -lt 1048576 ] || continue
                 for p in $COPY; do
-                    case \"\${f#$T/}\" in \$p) cp --remove-destination \"\$t\" \"\$f\"; break ;; esac
+                    case \"\${f#$T/}\" in \$p)
+                        cp --remove-destination \"\$t\" \"\$f\"
+                        echo \"  [\$((i * 100 / n))%] copied \${f#$T/}\"
+                        break ;;
+                    esac
                 done
             done
             set +f
@@ -112,11 +136,12 @@ if ! remote "[ -d $T ]"; then
         true"
 fi
 # the package, every time: over the copy, and alone in the folder without data
+echo "Copying $OUT to $HOST..."
 for d in $T $T.empty; do
-    (cd "$OUT/games/dnk/$NAME" && tar cf - .) | remote "tar xf - --no-same-owner -C $d"
+    send "$OUT/games/dnk/$NAME" $d
 done
 remote "mkdir -p /media/fat/_Other/.${LOWER}_test && rm -f /media/fat/_Other/.${LOWER}_test/*.rbf"
-(cd "$OUT/_Other/dnk" && tar cf - .) | remote "tar xf - --no-same-owner -C /media/fat/_Other/.${LOWER}_test"
+send "$OUT/_Other/dnk" /media/fat/_Other/.${LOWER}_test
 remote "printf '%s\n' '<mistergamedescription><rbf>_Other/.${LOWER}_test/dnk-$NAME</rbf><setname>${NAME}_TEST</setname></mistergamedescription>' > $T.mgl"
 
 DIR=$T
@@ -136,13 +161,23 @@ if [ -n "$TEST_USB" ]; then
             echo "Copying the installed $NAME's data to $DATA on the MiSTer..."
             remote "mkdir -p $USB/games/dnk && rm -rf $DATA.part
                 for d in /media/usb[0-7]/games/dnk/$NAME /media/fat/games/dnk/$NAME /media/fat/games/$NAME; do
-                    [ -d \$d ] && { cp -r \$d $DATA.part && mv $DATA.part $DATA; break; }
+                    [ -d \$d ] || continue
+                    n=\$(find \$d -type f | wc -l)
+                    i=0
+                    (cd \$d && find . -type d) | while IFS= read -r s; do mkdir -p \"$DATA.part/\$s\"; done
+                    (cd \$d && find . -type f) | while IFS= read -r s; do
+                        i=\$((i + 1))
+                        echo \"  [\$((i * 100 / n))%] \${s#./}\"
+                        cp \"\$d/\$s\" \"$DATA.part/\$s\" || exit 1
+                    done && mv $DATA.part $DATA
+                    break
                 done
                 mkdir -p $DATA"
         fi
     fi
 fi
 # the port's launch script, for these folders (it must be the template's)
+echo "Loading the test core and starting the game..."
 remote "cd $DIR && sed -e 's|^GAMEDIR=.*|GAMEDIR=\"$DIR\"|' -e 's|^DATADIR=.*|DATADIR=\"$DATA\"|' \
         -e 's|^LOGDIR=.*|LOGDIR=\"$T.logs\"|' \
         -e 's|/tmp/$LOWER.lock|/tmp/${LOWER}_test.lock|' -e 's|^RUNLOG=.*|RUNLOG=$T.runlog|' \
