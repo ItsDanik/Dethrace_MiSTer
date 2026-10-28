@@ -67,7 +67,7 @@ Run it from the `Scripts` menu again whenever you want to change something. Its 
 |---|---|
 | Aspect ratio, Scale, Scandoubler Fx, Stereo Mix | as in other cores |
 | FPS Counter | shows the pictures per second in the top left corner |
-| HDMI Only | as in the other hybrid ports, for resolutions of 640x400 and more: Dethrace has none, so nothing changes here |
+| HDMI Only | **Yes** if no CRT is connected: resolutions of 640x400 and more are then progressive instead of interlaced, and so is the core's own screen before the game, which moves at 60 pictures a second for a CRT and shows fine lines on HDMI without it. The analog output is switched off while one is shown, so that a 15kHz screen can never get such a signal. Dethrace has no such resolution, so nothing changes in the game. Not needed with `forced_scandoubler=1` (VGA monitor); not there with `direct_video=1` |
 | CRT Options | **Horizontal Size**: the picture's width<br>**Horizontal Pos**: moves it left or right<br>**Vertical Pos**: moves it up or down<br>**HUD (Top)**: lifts the instruments at the top 0 to 24 lines off the top edge (default 0), in races at 320x240<br>**HUD (Bottom)**: lifts the instruments at the bottom 0 to 24 lines off the bottom edge (default 0), in races at 320x240<br><br>For a 15kHz screen: fits the picture to it and keeps the instruments out of the overscan. HDMI is not affected; not there with `forced_scandoubler=1` |
 | Sound Volume | master volume of sound effects and cutscene audio, on top of the game's own setting |
 | Music Volume | master volume of the CD music, on top of the game's own setting |
@@ -77,6 +77,7 @@ Run it from the `Scripts` menu again whenever you want to change something. Its 
 | Cutscenes | **On**: the intro and the other videos (default)<br>**Off**: skips them |
 | Rumble | **On**: when the car is hit, the harder the stronger (default)<br>**Off**: no rumble |
 | Cheats | In a race:<br>**Invulnerability**: the car takes no damage<br>**Instant Repair**: repairs the car<br>**Extra Credits**: 10000 credits<br>**Finish Lap**: completes the lap (the last one, the race) |
+| Reset | starts the game again from its beginning, as the USER button does |
 | Save Diagnostic Report | the last line: see [If something is wrong](#if-something-is-wrong) |
 
 ## Controls

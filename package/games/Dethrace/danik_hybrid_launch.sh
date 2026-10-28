@@ -64,11 +64,17 @@ export XDG_DATA_HOME="$DATADIR/config"
 # Exit code 42: the player quit a game picked from a list (MH_UI_Menu), start
 # again to show the list. Exit code 43: the core was loaded again while the
 # game ran (MH_CoreReloaded), start again once it has settled, unless it was
-# another core after all.
+# another core after all. Exit code 44: the player reset the game (the USER
+# button or the OSD's Reset line, host version 18; MH_EXIT_RESET), start the
+# same game again at once (MISTER_HYBRID_RESET: the library picks the game it
+# picked before, from the list too).
 GAME=
+RESET=
 # The game must not outlive us: on SIGTERM it saves its settings and quits
 trap '[ -n "$GAME" ] && kill "$GAME" 2>/dev/null && wait "$GAME"; savelog; exit 0' TERM INT
 while :; do
+    export MISTER_HYBRID_RESET="$RESET"
+    RESET=
     # GAME: its command line (where it finds data, settings and saved games:
     # DATADIR, the current folder; what came with the port, libraries the game
     # loads among them: GAMEDIR). No HOME: dethrace.ini (optional) is read
@@ -79,24 +85,35 @@ while :; do
     GAME=$!
     wait "$GAME"
     RC=$?
+    GAME=
     savelog
-    if [ $RC -eq 43 ]; then
+    grep -q "^$CORE" /tmp/CORENAME 2>/dev/null || break
+    if [ $RC -eq 44 ]; then
+        RESET=1
+        continue
+    elif [ $RC -eq 43 ]; then
         sleep 1
         grep -q "^$CORE" /tmp/CORENAME 2>/dev/null || break
-    elif [ $RC -ne 42 ]; then
-        break
+        continue
+    elif [ $RC -eq 42 ]; then
+        continue
     fi
-done
-GAME=
-
-# Unless another core was loaded meanwhile: a game that left with an error
-# (one that crashed: 128 + the signal) and put no message up says so on the
-# core's picture (./mh_message, host version 13), and a message stays there
-# until the player leaves the core. Else back to the MiSTer menu.
-if grep -q "^$CORE" /tmp/CORENAME 2>/dev/null; then
+    # A game that left with an error (one that crashed: 128 + the signal) and
+    # put no message up says so on the core's picture (./mh_message, host
+    # version 13). A message stays there until the player leaves the core, or
+    # resets the game, which starts it again. Else back to the MiSTer menu.
     if [ $RC -ne 0 ] && ! "$GAMEDIR/mh_message" --shown >> "$LOG" 2>&1; then
         "$GAMEDIR/mh_message" --error "The game stopped unexpectedly (exit code $RC).\nIts log: ${LOG#/media/fat/}" >> "$LOG" 2>&1
         sleep 0.1
     fi
-    "$GAMEDIR/mh_message" --shown >> "$LOG" 2>&1 || echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
-fi
+    if "$GAMEDIR/mh_message" --shown >> "$LOG" 2>&1; then
+        "$GAMEDIR/mh_message" --wait-reset >> "$LOG" 2>&1
+        if [ $? -eq 44 ]; then
+            RESET=1
+            continue
+        fi
+    else
+        echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+    fi
+    break
+done

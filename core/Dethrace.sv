@@ -63,6 +63,11 @@ localparam CONF_STR = {
 	"P1O[68:64],Horizontal Size,0,+1,+2,+3,+4,+5,+6,+7,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
 	"P1O[72:69],Horizontal Pos,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
 	"P1O[76:73],Vertical Pos,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
+	// the flicker filter of an interlaced picture (host version 18,
+	// hybrid/README.md "Video modes"): hidden in a core without it (FLICKER 0,
+	// menu mask bit 9), greyed out while the picture is not interlaced (bit 10)
+	"H9P1-;",
+	"H9DAP1O[106:105],Flicker Filter,Light,Strong,Off;",
 	// The HUD margins (MH_HudMargins(), hybrid/README.md "HUD margins"): how
 	// far the instruments at the top and at the bottom of a race in 320x240
 	// are from the edges, 0 the default (host version 16; up to 15 entry 0
@@ -97,6 +102,11 @@ localparam CONF_STR = {
 	// Bits 16..23 were Menu OK / Menu Back up to host version 13 (a saved
 	// setting may still have them set): 16 is Save Diagnostic Report's since
 	// host version 16 (a trigger, which the core flips), 17..23 unused.
+	// The game's reset, as in every other MiSTer core (host version 18; the
+	// USER button does the same): hybrid_host shows its picture at once and
+	// the library ends the game, which the launch script starts again. Bit 0
+	// is Main_MiSTer's reset (R0); hybrid_host takes it from the status.
+	"R0,Reset;",
 	// The last line of every core's menu (host version 16, hybrid/docs/diagnostics.md):
 	// the library saves a report of the setup and the last 60 seconds in
 	// games/dnk/diagnostics/ (bit 16, flipped by hybrid_host at each pulse)
@@ -138,9 +148,21 @@ localparam [1:0] HUD_EDGES = 2'b11;
 // (Danik, 2026-10-23)
 localparam MIDI_SYNTH = 0;
 
+// 1 in every core: the core's intro when it starts, which the game waits
+// for, and its picture fading out before the game's first frame (0 only in
+// a frontend, hybrid/docs/dnklauncher.md).
+localparam INTRO = 1;
+// 1 in a core with a 640x400 or 640x480 mode (interlaced at 15kHz): the
+// OSD's Flicker Filter line (host version 18). It costs two more line
+// buffers and two more copies of the palette, 12 M10K blocks; 0 hides the line
+localparam FLICKER = 0;
+
 wire         forced_scandoubler;
 wire         direct_video;
 wire   [3:0] menumask;
+wire         lace;
+wire [127:0] status_in;
+wire         status_set;
 wire         mt32_on;
 wire         info_req;
 wire   [7:0] info;
@@ -165,9 +187,14 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 	.buttons(buttons),
 	.status(status),
+	// the program sets the OSD's Flicker Filter line (MH_SetFlickerFilter())
+	.status_in(status_in),
+	.status_set(status_set),
 	// bit 6: an MT32-pi is connected (no lines of its own here); 7 and 8: no
-	// HUD at the top / the bottom ("D7", "D8": its line greyed out)
-	.status_menumask({7'd0, ~HUD_EDGES[1], ~HUD_EDGES[0], mt32_on, direct_video, forced_scandoubler, menumask}),
+	// HUD at the top / the bottom ("D7", "D8": its line greyed out); 9: no
+	// flicker filter ("H9"), 10: the picture is not interlaced ("DA": its
+	// line greyed out)
+	.status_menumask({5'd0, ~lace, FLICKER == 0, ~HUD_EDGES[1], ~HUD_EDGES[0], mt32_on, direct_video, forced_scandoubler, menumask}),
 	.info_req(info_req),
 	.info(info),
 
@@ -218,7 +245,7 @@ wire       hires, fast, f1;
 // `fast` follows vga31, and falls only after the output has gone quiet
 assign VGA_DISABLE = fast & ~forced_scandoubler;
 
-hybrid_host #(.MIDI_SYNTH(MIDI_SYNTH)) host
+hybrid_host #(.MIDI_SYNTH(MIDI_SYNTH), .INTRO(INTRO), .FLICKER(FLICKER)) host
 (
 	.clk(clk_sys),
 	.reset(reset),
@@ -264,6 +291,9 @@ hybrid_host #(.MIDI_SYNTH(MIDI_SYNTH)) host
 	.fast(fast),
 	.f1(f1),
 	.menumask(menumask),
+	.lace(lace),
+	.status_out(status_in),
+	.status_set(status_set),
 
 	.audio_l(AUDIO_L),
 	.audio_r(AUDIO_R),

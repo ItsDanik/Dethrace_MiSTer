@@ -44,7 +44,11 @@ T=/tmp/${LOWER}_test
 # (shell patterns of their paths in the game's folder; "*" is all of them).
 # All, unless they do not fit in /tmp (246MB, with the package): then the
 # files the game writes, its settings and saved games.
-COPY="*"
+# Dethrace: all of them filled /tmp with both games installed. What the game
+# writes, under DATA/ and SPLATPAK/DATA/ (gApplication_path): OPTIONS.TXT
+# (loading.c), KEYMAP_<n>.TXT (options.c) and SAVEGAME/SAVE<n> (loadsave.c),
+# a file's name in any case; saves/ and config/ are the launch script's.
+COPY="*OPTIONS.TXT *options.txt *KEYMAP*.TXT *keymap*.txt */SAVEGAME/* saves/* config/*"
 
 remote() {
     ssh -o LogLevel=ERROR "$HOST" "$@"
