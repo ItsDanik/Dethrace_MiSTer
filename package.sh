@@ -67,6 +67,11 @@ done
 # (hybrid/docs/oled.md): from package/oled/<id>_icon.png, package/oled/<id>_logo.png
 # or else the game's logo, and package/info.txt
 python3 hybrid/tools/make_oled.py package package "$G"
+# each game's cover for dnkLauncher (hybrid/docs/dnklauncher.md, "Covers"):
+# package/covers/<id>.png as covers/<id>.cover (an older hybrid/ cannot make them)
+if [ -d package/covers ] && grep -q -e '--covers' hybrid/tools/dnklauncher_art.py 2>/dev/null; then
+    python3 hybrid/tools/dnklauncher_art.py --covers package/covers "$G/covers"
+fi
 # the SoundFont of the core's MIDI synthesizer, for a core that has it
 # (MIDI_SYNTH 1): fetched at its pinned version, never committed
 if grep -q '^localparam MIDI_SYNTH = 1;' core/Dethrace.sv; then
