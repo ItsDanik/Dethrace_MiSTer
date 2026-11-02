@@ -68,8 +68,11 @@ done
 # or else the game's logo, and package/info.txt
 python3 hybrid/tools/make_oled.py package package "$G"
 # each game's cover for dnkLauncher (hybrid/docs/dnklauncher.md, "Covers"):
-# package/covers/<id>.png as covers/<id>.cover (an older hybrid/ cannot make them)
-if [ -d package/covers ] && grep -q -e '--covers' hybrid/tools/dnklauncher_art.py 2>/dev/null; then
+# package/covers/<id>.png as covers/<id>.cover. A hybrid/ from before covers cannot
+# make them, and a release without them would take them out of the database and
+# off the players' SD cards: refused
+if [ -d package/covers ]; then
+    grep -q -e '--covers' hybrid/tools/dnklauncher_art.py 2>/dev/null || { echo "package/covers is here but this hybrid/ cannot make the covers: update hybrid/ first (a release without them takes them off the players' SD cards)" >&2; exit 1; }
     python3 hybrid/tools/dnklauncher_art.py --covers package/covers "$G/covers"
 fi
 # the SoundFont of the core's MIDI synthesizer, for a core that has it
